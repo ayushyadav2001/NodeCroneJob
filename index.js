@@ -30,7 +30,7 @@ async function fetchDataAndCompareDate() {
     host: "localhost",
     user: "root",
     password: "",
-    database: "datalinx_prod",
+    database: "testingdbthingslista",
   });
 
   try {
@@ -39,8 +39,102 @@ async function fetchDataAndCompareDate() {
       "SELECT * FROM eq_batch WHERE DATE(end_dt) = CURDATE();"
     );
     const [rows] = await connection.query("SELECT * FROM eq_batch");
-    const [equipment] = await connection.query("SELECT * FROM equipment");
-    const currentDate = new Date();
+    const [equipment] = await connection.query("SELECT * FROM equipment ");
+    // console.log(eq_batchData);
+
+    // const arrayOfEquimentId = eq_batchData.map((object) => {
+    //   return object.eq_id;
+    // });
+    // console.log(arrayOfEquimentId);
+    const uniqueEquipmentIds = [
+      ...new Set(eq_batchData.map((object) => object.eq_id)),
+    ];
+
+    // console.log(uniqueEquipmentIds);
+    // console.log(arrayOfEquimentId);
+    // const usersData = await connection.query(
+    //   "SELECT u.* FROM se_user_eq ue INNER JOIN se_user u ON ue.user_id = u.user_id WHERE ue.eq_id = 1;"
+    // );
+    // console.log(usersData[0]);
+    // working
+    // const query = `SELECT u.* FROM se_user_eq ue INNER JOIN se_user u ON ue.user_id = u.user_id WHERE ue.eq_id = ?; `;
+    // const query = `SELECT DISTINCT u.user_id, u.* FROM se_user_eq ue INNER JOIN se_user u ON ue.user_id = u.user_id WHERE ue.eq_id = ?; `;
+
+    // for (const eqId of uniqueEquipmentIds) {
+    //   console.log(`for user eqpId ${eqId}`);
+    //   const usersData = await connection.query(query, [eqId]);
+    //   // console.log(usersData[0]);
+
+    //   eq_batchData.forEach((eqData) => {
+    //     // console.log(usersData[0]);
+    //     const dataEuipment = {
+    //       sampleDate: eqData.sample_dt,
+    //       endDate: eqData.end_dt,
+    //       startDate: eqData.start_dt,
+    //       rackNumber: eqData.location_id,
+    //       bachNumber: eqData.batch_no,
+    //       // equipment: rows[0].batch_no,
+    //       sampleNumber: eqData.sample_no,
+    //       sampleName: eqData.sample_name,
+    //     };
+    //     console.log(dataEuipment);
+    //   });
+    // }
+    const query = `SELECT DISTINCT u.user_id, u.* FROM se_user_eq ue INNER JOIN se_user u ON ue.user_id = u.user_id WHERE ue.eq_id = ?; `;
+
+    for (const eqId of uniqueEquipmentIds) {
+      // console.log(`for user eqpId ${eqId}`);
+      const usersData = await connection.query(query, [eqId]);
+
+      eq_batchData.forEach((eqData) => {
+        const userData = usersData[0];
+        // Assuming you want to retrieve the first user's data
+        userData.forEach((d) => {
+          const dataEquipment = {
+            userEmail: d.Email,
+            phoneNumber: d.mobile_no,
+            sampleDate: eqData.sample_dt,
+            endDate: eqData.end_dt,
+            startDate: eqData.start_dt,
+            rackNumber: eqData.location_id,
+            batchNumber: eqData.batch_no,
+            sampleNumber: eqData.sample_no,
+            sampleName: eqData.sample_name,
+          };
+
+          const currentDate = new Date();
+          if (
+            currentDate.toDateString() === dataEquipment.endDate.toDateString()
+          ) {
+            sendEmail(
+              dataEquipment.userEmail,
+              dataEquipment.sampleDate,
+              dataEquipment.endDate,
+              dataEquipment.startDate,
+              dataEquipment.rackNumber,
+              dataEquipment.batchNumber,
+              dataEquipment.equipment,
+              dataEquipment.sampleNumber,
+              dataEquipment.sampleName
+            );
+            console.log(`after email  send to ${dataEquipment.userEmail}`);
+            sendSMS(
+              dataEquipment.phoneNumber,
+              dataEquipment.sampleDate,
+              dataEquipment.endDate,
+              dataEquipment.startDate,
+              dataEquipment.rackNumber,
+              dataEquipment.batchNumber,
+              dataEquipment.equipment,
+              dataEquipment.sampleNumber,
+              dataEquipment.sampleName
+            );
+            console.log("after  sms send");
+          }
+          // console.log(dataEquipment);
+        });
+      });
+    }
 
     equpData = {
       eqpName: equipment[0].equipment,
@@ -50,7 +144,6 @@ async function fetchDataAndCompareDate() {
       phoneNumber: user[3].mobile_no,
     };
 
-    console.log(userData);
     const data = {
       sampleDate: rows[0].sample_dt,
       endDate: rows[0].end_dt,
@@ -61,33 +154,31 @@ async function fetchDataAndCompareDate() {
       sampleNumber: rows[0].sample_no,
       sampleName: rows[0].sample_name,
     };
-    console.log(data);
-    const databaseDate = new Date(rows[0].end_dt);
 
-    if (currentDate.toDateString() === databaseDate.toDateString()) {
-      sendSMS(
-        userData.phoneNumber,
-        data.sampleDate,
-        data.endDate,
-        data.startDate,
-        data.rackNumber,
-        data.bachNumber,
-        equpData.eqpName,
-        data.sampleNumber,
-        data.sampleName
-      );
-      sendEmail(
-        userData.email,
-        data.sampleDate,
-        data.endDate,
-        data.startDate,
-        data.rackNumber,
-        data.bachNumber,
-        data.equipment,
-        data.sampleNumber,
-        data.sampleName
-      );
-    }
+    // if (currentDate.toDateString() === databaseDate.toDateString()) {
+    // sendSMS(
+    //   userData.phoneNumber,
+    //   data.sampleDate,
+    //   data.endDate,
+    //   data.startDate,
+    //   data.rackNumber,
+    //   data.bachNumber,
+    //   equpData.eqpName,
+    //   data.sampleNumber,
+    //   data.sampleName
+    // );
+    // sendEmail(
+    //   userData.email,
+    //   data.sampleDate,
+    //   data.endDate,
+    //   data.startDate,
+    //   data.rackNumber,
+    //   data.bachNumber,
+    //   data.equipment,
+    //   data.sampleNumber,
+    //   data.sampleName
+    // );
+    // }
   } catch (error) {
     console.error("Error fetching data:", error);
   } finally {
@@ -159,12 +250,12 @@ function sendEmail(
   });
 }
 
-fetchDataAndCompareDate();
+// fetchDataAndCompareDate();
 // Schedule the cron job to execute the tasks
 cron.schedule("*/1 * * * *", () => {
-  //   sendSMS();
-  //   sendEmail();
-  // Run the tasks at 9:00 AM every day
+  //   //   sendSMS();
+  //   //   sendEmail();
+  //   // Run the tasks at 9:00 AM every day
   fetchDataAndCompareDate();
 });
 // cron.schedule("0 9 * * *", () => {
