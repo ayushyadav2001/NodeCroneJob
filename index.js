@@ -6,7 +6,7 @@ const mysql = require("mysql2/promise");
 
 // Configure your Twilio and email credentials
 const twilioAccountSid = "AC1e664b5aa9c2ed6fc9d00ab81064a62a";
-const twilioAuthToken = "f6b301aa69cb9e1780c70642d85bd814";
+const twilioAuthToken = "b2c0036f8e1a3c06bea082c673a26639";
 const twilioPhoneNumber = "+13158094614";
 // const twilioAccountSid = "AC1e664b5aa9c2ed6fc9d00ab81064a62a";
 // const twilioAuthToken = "f6b301aa69cb9e1780c70642d85bd814";
@@ -101,7 +101,7 @@ async function fetchDataAndCompareDate() {
             sampleNumber: eqData.sample_no,
             sampleName: eqData.sample_name,
           };
-
+          console.log(dataEquipment);
           const currentDate = new Date();
           if (
             currentDate.toDateString() === dataEquipment.endDate.toDateString()
@@ -136,24 +136,24 @@ async function fetchDataAndCompareDate() {
       });
     }
 
-    equpData = {
-      eqpName: equipment[0].equipment,
-    };
-    const userData = {
-      email: user[3].Email,
-      phoneNumber: user[3].mobile_no,
-    };
+    // equpData = {
+    //   eqpName: equipment[0].equipment,
+    // };
+    // const userData = {
+    //   email: user[3].Email,
+    //   phoneNumber: user[3].mobile_no,
+    // };
 
-    const data = {
-      sampleDate: rows[0].sample_dt,
-      endDate: rows[0].end_dt,
-      startDate: rows[0].start_dt,
-      rackNumber: rows[0].location_id,
-      bachNumber: rows[0].batch_no,
-      // equipment: rows[0].batch_no,
-      sampleNumber: rows[0].sample_no,
-      sampleName: rows[0].sample_name,
-    };
+    // const data = {
+    //   sampleDate: rows[0].sample_dt,
+    //   endDate: rows[0].end_dt,
+    //   startDate: rows[0].start_dt,
+    //   rackNumber: rows[0].location_id,
+    //   bachNumber: rows[0].batch_no,
+    //   // equipment: rows[0].batch_no,
+    //   sampleNumber: rows[0].sample_no,
+    //   sampleName: rows[0].sample_name,
+    // };
 
     // if (currentDate.toDateString() === databaseDate.toDateString()) {
     // sendSMS(
@@ -206,7 +206,7 @@ function sendSMS(
       and Your End Date of Sample is ${endDate} your start date is ${startDate} is place in rack number ${rackNumber} and its Batch Number is ${bachNumber} 
       your equipment Name is ${equipment} and your Sample Name is ${sampleName} and Sample Number is ${sampleNumber} `,
       from: twilioPhoneNumber,
-      to: `${phoneNumber}`,
+      to: phoneNumber,
     })
     .then((message) => console.log("SMS sent:", message.sid))
     .catch((error) => console.error("Error sending SMS:", error));
@@ -249,15 +249,16 @@ function sendEmail(
     }
   });
 }
+fetchDataAndCompareDate();
 
 // fetchDataAndCompareDate();
 // Schedule the cron job to execute the tasks
-cron.schedule("*/1 * * * *", () => {
-  //   //   sendSMS();
-  //   //   sendEmail();
-  //   // Run the tasks at 9:00 AM every day
-  fetchDataAndCompareDate();
-});
+// cron.schedule("*/1 * * * *", () => {
+//   //   //   sendSMS();
+//   //   //   sendEmail();
+//   //   // Run the tasks at 9:00 AM every day
+//   fetchDataAndCompareDate();
+// });
 // cron.schedule("0 9 * * *", () => {
 //   sendSMS();
 //   sendEmail();
